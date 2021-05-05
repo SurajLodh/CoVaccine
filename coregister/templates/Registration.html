@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block msg %}
+    {% if messages %}
+        {% for message in messages %}
+            <p {% if message.tags %} class="alert alert-{{message.tags}} mb-5" {% endif %}>{{message}}</p>
+        {% endfor %}
+    {% endif %}
+{% endblock msg %}
+
+
+{% block side %}
+<!-- <div class="p-3 my-3 border"> -->
+    <!-- <div class="col-sm-2 text-white my-5 text-center">
+        <h4 class="my-5">Profile</h4>
+        <h5>{{full_name}}</h5>
+            {% for group in gps %}
+                <p>{{group.name}}</p>
+            {% endfor %}
+    </div> -->
+<!-- </div>  -->
+{% endblock side %}
+
+
+{% block content %}
+    <div class="col-sm-11">
+        <h3 class="text-white my-5">Registration Page</h3>
+        <a href="{% url 'Register' %}" class="btn btn-success">Register</a>
+        <h4 class="text-center alert alert-info mt-3">Show posts Information</h4>
+        {% if posts %}
+            <table class="table form-control">
+                <thead class="thead-dark">
+                    <tr class="text-center">
+                        <th scope="col" style="width:8%">Unique ID</th>
+                        <th scope="col" style="width:10%">First Name</th>
+                        <th scope="col" style="width:10%">Last Name</th>
+                        <th scope="col" style="width:10%">Blood Group</th>
+                        <th scope="col" style="width:13%">State</th>
+                        <th scope="col" style="width:10%">City</th>
+                        <th scope="col" style="width:10%">Zip Code</th>
+                        <th scope="col" style="width:10%">OP. Date</th>
+                        <th scope="col" style="width:8%">Status</th>
+                        <!-- {% if perms.coregister.delete_User_data %} -->
+                        <th scope="col" style="width:20%">Action</th>
+                        <!-- {% endif %} -->
+
+                    </tr>
+                </thead>
+                {% for post in posts %}
+                    <tbody>
+                        <tr class="text-center">
+                            <th scope="row">{{post.id}}</th>
+                            <td>{{post.fname}}</td>
+                            <td>{{post.lname}}</td>
+                            <td>{{post.blod}}</td>
+                            <td>{{post.state}}</td>
+                            <td>{{post.city}}</td>
+                            <td>{{post.zipcode}}</td>
+                            <td>{{post.op_date}}</td>
+                            <td>{{post.status}}</td>
+                            {% if perms.coregister.delete_User_data %}
+                            <td class="text-center">
+                                
+                                <a href="{% url 'update' post.id %}" class="btn btn-warning btn-sm">Edit</a>
+                                
+                                    <form action="{% url 'delete' post.id %}" method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-danger btn-sm" value="Delete">
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                {% endfor %}
+            </table>
+            {% else %}
+                <h4 class="text-center alert alert-warning">No Records</h4>
+        {% endif %}
+    </div>
+{% endblock content %}

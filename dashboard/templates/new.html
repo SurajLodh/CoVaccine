@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js'></script>
+    <link rel="stylesheet" type="text/css" href="//github.com/downloads/lafeber/world-flags-sprite/flags32.css" />
+    <!-- <script src="static/myChart.js" type="text/javascript"></script> -->
+
+    <style>
+        /* Add some padding on document's body to prevent the content
+        to go underneath the header and footer */
+        body{
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+        .fixed-header, .fixed-footer{
+            width: 100%;
+            position: fixed;
+            background: #333;
+            padding: 10px 0;
+            color: #fff;
+        }
+        .fixed-header{
+            top: 0;
+        }
+        .fixed-footer{
+            bottom: 0;
+        }
+        .container{
+            width: 80%;
+            margin: 0 auto; /* Center the DIV horizontally */
+        }
+        nav a{
+            color: #fff;
+            text-decoration: none;
+            padding: 7px 25px;
+            display: inline-block;
+        }
+    </style>
+    <title>VaccineDash</title>
+
+</head>
+
+<body>
+
+<div class="fixed-header">
+    <div class>
+        <nav>
+            <a href="/"><span style="font-size: 25px;">CoVaccine </span></a>
+            <a href="/dashboard/"><span style="font-size: 20px;">Dashboard </span></a>
+        </nav>
+    </div>
+</div>
+            <div class="col-lg-3" style="float: left;  max-height: 650px;max-width:3600px;overflow: scroll; overflow-x:hidden;">
+                <div style="background-color: rgb(41, 41, 40);">
+                    <span style="color: rgb(255, 255, 255); text-align: center;"><h2>Total Vaccinated: {{Total_Vaccine_sum_leftside_graph|safe}}</h2></span>
+                </div>
+                <div class="col-lg-12">
+                    <div class="col-lg-4" style="height: 4200px; float: left;">
+
+                        <form method="POST" enctype="multipart/form-data" action="selectCountry">
+
+                            {% for con in Unique_country_names %}
+                            {% csrf_token %}
+                            <input type="submit" value={{con}} name="countryName" style="width:100px;"><br>
+
+                            {% endfor %}
+
+                    </div>
+                    <div style="float: left;">
+                        <canvas id="myChart" style="height: 4200px; width: 280px;"></canvas>
+                    </div>
+                    </form>
+                </div>
+
+            </div>
+            <div class="col-lg-6" style="float: left;">
+                <br>
+                <br>
+                {% if ShowMap == 'True' %}
+                <div style="float: center;">
+                    <h2 style="text-align: center;">Analysis on Continents</h2><br>
+                    <canvas id="conti_chart" style="height: 550px; width: 1100px; !important"></canvas><br>
+                </div></div>
+                <div style="float: left;">
+                    <h2 style="text-align: center;">Africa || Total Vaccination : {{Africa}}</h2><br>
+                    <canvas id="Africa" style="height: 450px; width: 720px; !important"></canvas>
+                    <br>
+                        <h2 style="text-align: center;">Europe || Total Vaccination : {{Europe}}</h2><br>
+                        <canvas id="Europe" style="height: 450px; width: 720px; !important"></canvas>
+                        <br>
+                            <h2 style="text-align: center;">North_America || Total Vaccination : {{North_America}}</h2><br>
+                            <canvas id="North_America" style="height: 450px; width: 720px; !important"></canvas>
+                </div>
+                <div style="float: right;">
+                    <h2 style="text-align: center;">Asia || Total Vaccination : {{Asia}}</h2><br>
+                    <canvas id="Asia" style="height: 450px; width: 720px; !important"></canvas>
+                    <br>
+                        <h2 style="text-align: center;">Oceania || Total Vaccination : {{Oceania}}</h2><br>
+                        <canvas id="Oceania" style="height: 450px; width: 720px; !important"></canvas>
+                        <br>
+                            <h2 style="text-align: center;">South_America || Total Vaccination : {{South_America}}</h2><br>
+                            <canvas id="South_America" style="height: 450px; width: 720px; !important"></canvas>
+                </div>
+                </div>
+                {% elif ShowMap == 'False' %}
+                <div style="float: center;">
+                    <h2 style="text-align: center;">{{Country}} || Total Vaccinated : {{total_count_Contry_vacine}}</h2><br>
+                    <canvas id="total_vaccinations" style="height: 550px; width: 1100px; !important"></canvas><br>
+                </div>
+            </div>
+            <div id="col-lg-7" style="float: center">
+                <div style="float: left;">
+                        <h2 style="text-align: center;">Total Vaccination vs People Fully Vaccinated</h2><br>
+                        <canvas id="total_people_fully_vaccinated" style="height: 450px; width: 720px; !important"></canvas>
+                        <h2 style="text-align: center;">{{total_vaccinations_sum}} vs {{people_fully_vaccinated_sum}}</h2>
+                </div>
+                <div style="float: right;">
+                    <h2 style="text-align: center;">New Cases vs New Deaths</h2><br>
+                    <canvas id="new_cases_death" style="height: 450px; width: 720px; !important"></canvas>
+                    <h2 style="text-align: center;">{{new_cases_sum}} vs {{new_deaths_sum}}</h2><br>
+                </div>
+            </div>
+           
+                {%endif%}
+            
+
+</body>
+
+<!-- #Graph_for_leftside_horizontal -->
+<script type='text/javascript'>
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var chartOptions = {
+                            legend: {
+                                display: false
+                                    },
+                            scales: {
+                                xAxes: [{
+                                    barPercentage:1
+                                    }],
+                                yAxes: [
+                                        // {barPercentage: 1},
+                                        // {gridLines:{drawBorder: false}},
+                                        {ticks: {display:false}},
+                                        // {ticks: {mirror: true}},
+                                        {display: false},
+
+                                        ],
+                            elements: {
+                                rectangle: {
+                                borderSkipped: 'left',
+                                }
+                            }
+                            }
+                        };
+    var myChart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'horizontalBar',
+
+        // The data for our dataset
+        data: {
+            labels: {{Unique_country_names|safe}},
+            datasets: [{
+                label: 'Total vaccinated',
+                backgroundColor: '#6589e6',
+                borderColor: '#8f0d2b',
+                data: {{Total_Vaccine_count|safe}}
+            }]
+        },
+
+        // Configuration options go here
+        options: chartOptions
+    });
+</script>
+
+<!-- #total_vaccinations -->
+<script type='text/javascript'>
+    var ctx = document.getElementById('total_vaccinations').getContext('2d');
+    var total_vaccinations = new Chart(ctx, {
+    // The type of chart we want to create
+    type: 'line',
+
+    // The data for our dataset
+    data: {
+        labels: {{Date_for_graph|safe}},
+        datasets: [{
+            label: 'Total vaccinated',
+            backgroundColor: '#97bd9c',
+            borderColor: '#19e634',
+            data:{{total_vaccinations|safe}}
+        }]
+    },
+
+    // Configuration options go here
+    options: {}
+});
+
+</script>
+
+<!-- #total_people_fully_vaccinated -->
+<script type='text/javascript'>
+    var ctx = document.getElementById('total_people_fully_vaccinated').getContext('2d');
+    var total_people_fully_vaccinated = new Chart(ctx, {
+    // The type of chart we want to create
+    type: 'line',
+                    data: {
+                        labels: {{Date_for_graph|safe}},
+                        datasets: [{
+                                data: {{total_vaccinations|safe}},
+                                label: 'Total Vaccination',
+                                // backgroundColor: '#a4c3eb',
+                                borderColor: "#c20c7c",
+                                // fill: false
+                            },
+                            {
+                                data: {{people_fully_vaccinated|safe}},
+                                label: 'People Fully Vaccinated',
+                                backgroundColor: '#dacce6',
+                                borderColor: "#408385",
+                                fill: true
+                            }
+                        ]
+    },
+
+    // Configuration options go here
+    options: {}
+});
+</script>
+
+<!-- #new_cases_death -->
+<script type='text/javascript'>
+    var ctx = document.getElementById('new_cases_death').getContext('2d');
+    var new_cases_death = new Chart(ctx, {
+    // The type of chart we want to create
+    type: 'line',
+                    data: {
+                        labels: {{Date_for_graph|safe}},
+                        datasets: [{
+                                data: {{new_cases|safe}},
+                                label: 'New Cases',
+                                // backgroundColor: '#30e339',
+                                borderColor: "#206e35",
+                                // fill: false
+                            },
+                            {
+                                data: {{new_deaths|safe}},
+                                label: 'New Deaths',
+                                backgroundColor: '#f5958e',
+                                borderColor: "#ed2213",
+                                // fill: true
+                            }
+                        ]
+    },
+
+    // Configuration options go here
+    options: {}
+});
+</script>
+
+</html>
